@@ -1,20 +1,20 @@
 import { Role } from "@prisma/client"
-import { IsEmail, IsEmpty, IsEnum, IsString } from "class-validator"
+import { IsEmail, IsEnum, IsNotEmpty, IsString } from "class-validator"
 
 export class CreateUserDTO {
     @IsString()
-    @IsEmpty()
+    @IsNotEmpty()
     name: string
 
     @IsEmail()
-    @IsEmpty()
+    @IsNotEmpty()
     email: string
 
     @IsString()
-    @IsEmpty()
+    @IsNotEmpty()
     password: string
 
+    @IsString()
     @IsEnum(Role)
-    @IsEmpty()
     role: Role
 }
