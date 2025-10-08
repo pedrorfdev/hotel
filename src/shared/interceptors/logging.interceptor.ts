@@ -16,5 +16,4 @@ export class LoggingInterceptor implements NestInterceptor {
                 console.log(`After... ${Date.now() - now}ms`)
             }))
     }
-
 }
