@@ -43,9 +43,9 @@ export class AuthService {
 
     async register(body: AuthRegisterDTO) {
         const newUser: CreateUserDTO = {
-            email: body.email,
-            name: body.name,
-            password: body.password,
+            email: body.email!,
+            name: body.name!,
+            password: body.password!,
             role: body.role ?? Role.USER,
         };
 
@@ -78,7 +78,7 @@ export class AuthService {
         return token
     }
 
-    private async validateToken(token: string): Promise<ValidateTokenDTO> {
+    async validateToken(token: string): Promise<ValidateTokenDTO> {
         try {
             const { decoded } = await this.jwtService.verifyAsync(token, {
                 secret: process.env.JWT_SECRET,
