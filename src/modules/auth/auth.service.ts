@@ -8,12 +8,15 @@ import { AuthRegisterDTO } from "./domain/dto/authRegister.dto";
 import { CreateUserDTO } from "../users/domain/dto/createUser.dto";
 import { AuthResetPasswordDTO } from "./domain/dto/authResetPassword.dto";
 import { ValidateTokenDTO } from "./domain/dto/validateToken.dto";
+import { MailerService } from "@nestjs-modules/mailer";
+import { templateHTML } from "./utils/templateHTML";
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly mailerService: MailerService
     ) { }
 
     async generateJwtToken(user: User, expiresIn: string = '1d') {
@@ -73,9 +76,13 @@ export class AuthService {
 
         const token = this.generateJwtToken(user, '30m')
 
-        //enviar o email com o token jwt para resetar a senha
+        await this.mailerService.sendMail({
+            to: email,
+            subject: 'Reset Password - Hotel',
+            html: templateHTML(user.name, (await token).acces_token),
+        })
 
-        return token
+        return `A verification code has been sent to ${email}`
     }
 
     async validateToken(token: string): Promise<ValidateTokenDTO> {

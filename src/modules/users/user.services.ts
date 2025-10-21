@@ -5,6 +5,8 @@ import { CreateUserDTO } from "./domain/dto/createUser.dto";
 import { UpdateUserDTO } from "./domain/dto/updateUser.dto";
 import * as bcrypt from 'bcrypt';
 import { userSelectFields } from "../prisma/utils/userSelectFields";
+import { join, resolve } from "path";
+import { stat, unlink } from "fs/promises";
 
 @Injectable()
 export class UserService {
@@ -68,6 +70,24 @@ export class UserService {
         })
     }
 
+    async uploadAvatar(id: number, avatarFilename: string) {
+        const user = await this.isIdExists(id)
+        const directory = resolve(__dirname, '..', '..', '..', 'uploads')
+
+        if (user.avatar) {
+            const userAvatarFilePath = join(directory, user.avatar)
+            const userAvatarFileExists = await stat(userAvatarFilePath)
+
+            if (userAvatarFileExists) {
+                await unlink(userAvatarFilePath)
+            }
+        }
+
+        const userUpdated = await this.update(id, { avatar: avatarFilename })
+
+        return userUpdated
+    }
+
     private async isIdExists(id: number) {
         const user = await this.prisma.user.findUnique({
             where: { id },
@@ -78,7 +98,7 @@ export class UserService {
             throw new NotFoundException('User not found!')
         }
 
-        return !!user
+        return user
     }
 
     private async hashPassword(password: string) {
