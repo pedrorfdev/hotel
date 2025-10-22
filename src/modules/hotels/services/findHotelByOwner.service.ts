@@ -10,7 +10,7 @@ export class FindHotelByOwnerService {
     private readonly hotelRepositories: IHotelRepository
   ) { }
 
-  async execute(OwnerId: number) {
-    return await this.hotelRepositories.findHotelByOwner(OwnerId)
+  async execute(id: number) {
+    return await this.hotelRepositories.findHotelByOwner(id)
   }
 }
