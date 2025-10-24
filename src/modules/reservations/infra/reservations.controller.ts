@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, UseGuards } from '@nestjs/common';
 import { CreateReservationDto } from '../domain/dto/create-reservation.dto';
-import { UpdateReservationDto } from '../domain/dto/update-reservation.dto';
 import { CreateReservationService } from '../service/createReservation.service';
 import { AuthGuard } from 'src/shared/guards/auth.guards';
 import { User } from 'src/shared/decorators/user.decorator';
@@ -8,8 +7,12 @@ import { ParamId } from 'src/shared/decorators/paramId.decorator';
 import { FindAllHotelsService } from 'src/modules/hotels/services/findAllHotel.service';
 import { FindByIdReservationsService } from '../service/findByIdReservation.service';
 import { FindByUserReservationsService } from '../service/findByUserReservations.service';
+import { ReservationStatus, Role } from '@prisma/client';
+import { UpdateStatusReservationsService } from '../service/updateStatusReservations.service';
+import { RoleGuard } from 'src/shared/guards/role.guard';
+import { Roles } from 'src/shared/decorators/roles.decorators';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RoleGuard)
 @Controller('reservations')
 export class ReservationsController {
   constructor(
@@ -17,8 +20,10 @@ export class ReservationsController {
     private readonly findAllReservationsService: FindAllHotelsService,
     private readonly findByIdReservationService: FindByIdReservationsService,
     private readonly findByUserReservationsService: FindByUserReservationsService,
+    private readonly updateStatusReservationsService: UpdateStatusReservationsService
   ) { }
 
+  @Roles(Role.USER)
   @Post()
   create(@User('id') id: number, @Body() body: CreateReservationDto) {
     return this.createReservationsService.execute(id, body);
@@ -31,7 +36,7 @@ export class ReservationsController {
 
   @Get('user')
   findByUser(@User('id') id: number) {
-    return this.findByIdReservationService.execute(id);
+    return this.findByUserReservationsService.execute(id);
   }
 
   @Get(':id')
@@ -39,13 +44,12 @@ export class ReservationsController {
     return this.findByIdReservationService.execute(id);
   }
 
+  @Roles(Role.ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateReservationDto: UpdateReservationDto) {
-    return this.reservationsService.update(+id, updateReservationDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.reservationsService.remove(+id);
+  updateStatus(
+    @ParamId() id: number,
+    @Body('status') status: ReservationStatus
+  ) {
+    return this.updateStatusReservationsService.execute(id, status);
   }
 }
