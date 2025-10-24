@@ -18,6 +18,9 @@ export class HotelsRepositories implements IHotelRepository {
         return this.prisma.hotel.findUnique({
             where: {
                 id: Number(id)
+            },
+            include: {
+                owner: true
             }
         })
     }
