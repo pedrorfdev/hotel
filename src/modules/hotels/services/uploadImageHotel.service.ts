@@ -3,13 +3,19 @@ import type { IHotelRepository } from '../domain/repositories/IHotel.repositorie
 import { HOTEL_REPOSITORY_TOKEN } from '../utils/repositoriesTokens';
 import { join, resolve } from 'path';
 import { stat, unlink } from 'fs/promises';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
+import { REDIS_HOTEL_KEY } from '../utils/redisKey';
 
 @Injectable()
 export class UploadImageHotelService {
 
   constructor(
     @Inject(HOTEL_REPOSITORY_TOKEN)
-    private readonly hotelRepositories: IHotelRepository
+    private readonly hotelRepositories: IHotelRepository,
+
+    @InjectRedis()
+    private readonly redis: Redis
   ) { }
 
   async execute(id: string, imageFileName: string) {
@@ -29,6 +35,8 @@ export class UploadImageHotelService {
         await unlink(hotelImageFilePath)
       }
     }
+
+    await this.redis.del(REDIS_HOTEL_KEY)
 
     return await this.hotelRepositories.updateHotel(Number(id), {
       image: imageFileName
